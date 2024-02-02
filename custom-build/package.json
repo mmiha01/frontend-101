@@ -4,9 +4,14 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "css-loader": "^6.10.0",
     "prettier": "^3.2.4",
+    "style-loader": "^3.3.4",
     "webpack": "^5.90.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
+  },
+  "scripts": {
+    "start": "yarn webpack serve"
   }
 }

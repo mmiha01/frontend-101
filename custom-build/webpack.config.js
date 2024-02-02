@@ -1,5 +1,6 @@
 const path = require("path");
 
+let {} = [];
 module.exports = {
   mode: "development",
   entry: "./src/index.js",
@@ -13,5 +14,19 @@ module.exports = {
     },
     compress: true,
     port: 9000,
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+
+        type: "asset/resource",
+      },
+      {
+        test: /\.css$/i,
+
+        use: ["style-loader", "css-loader"],
+      },
+    ],
   },
 };
