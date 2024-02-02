@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import {createContext, FormEvent, useContext, useState} from "react";
 import "./App.css";
 import {
   QueryClient,
@@ -7,6 +7,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { createUseStyles } from "react-jss";
+import { create } from "zustand";
 
 const client = new QueryClient();
 
@@ -19,30 +20,45 @@ const useStyles = createUseStyles({
   },
 });
 
+type Store = {
+  version: string;
+  setVersion: (version: string) => void;
+};
+
+const useAppStore = create<Store>((set) => ({
+  version: "1.0.0",
+  setVersion: (version: string) => set({ version }),
+}));
+
+const AppContext = createContext<Store>({ version: "1.0.0", setVersion: () => {} });
+
 function App() {
   const classes = useStyles();
+  const [version, setVersion] = useState('1.0.0')
   const [currentView, setCurrentView] = useState<"login" | "list">("login");
 
   return (
-    <QueryClientProvider client={client}>
-      {currentView === "login" ? (
-        <LoginForm onLogin={() => setCurrentView("list")} />
-      ) : (
-        <List page={1} />
-      )}
-      <br />
-      <br />
-      <br />
-      <button
-        className={classes.button}
-        onClick={() =>
-          setCurrentView(currentView === "list" ? "login" : "list")
-        }
-      >
-        Toggle view
-      </button>
-      <span className={classes.year}>This was built in year 2024</span>
-    </QueryClientProvider>
+    <AppContext.Provider value={{ version, setVersion }}>
+      <QueryClientProvider client={client}>
+        {currentView === "login" ? (
+          <LoginForm onLogin={() => setCurrentView("list")} />
+        ) : (
+          <List page={1} />
+        )}
+        <br />
+        <br />
+        <br />
+        <button
+          className={classes.button}
+          onClick={() =>
+            setCurrentView(currentView === "list" ? "login" : "list")
+          }
+        >
+          Toggle view
+        </button>
+        <span className={classes.year}>This was built in year 2024</span>
+      </QueryClientProvider>
+    </AppContext.Provider>
   );
 }
 
@@ -53,6 +69,13 @@ function sleep(time = 1000): Promise<void> {
 }
 
 function List({ page }: { page: number }) {
+  // zustand
+  const version1 = useAppStore(state => state.version)
+
+  // context
+  const version2 = useContext(AppContext).version
+
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["list", page],
     queryFn: async () => {
