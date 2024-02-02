@@ -1,11 +1,19 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import "./App.css";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useMutation,
+  useQuery,
+} from "@tanstack/react-query";
+
+const client = new QueryClient();
 
 function App() {
   const [currentView, setCurrentView] = useState<"login" | "list">("login");
 
   return (
-    <>
+    <QueryClientProvider client={client}>
       {currentView === "login" ? (
         <LoginForm onLogin={() => setCurrentView("list")} />
       ) : (
@@ -21,7 +29,7 @@ function App() {
       >
         Toggle view
       </button>
-    </>
+    </QueryClientProvider>
   );
 }
 
@@ -32,30 +40,20 @@ function sleep(time = 1000): Promise<void> {
 }
 
 function List({ page }: { page: number }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<string[] | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      setIsLoading(true);
-      setError(null);
-
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["list", page],
+    queryFn: async () => {
       await sleep();
 
       const response = await fetch(`http://localhost:3000/list/${page}`);
       if (!response.ok) {
-        setError(response.statusText);
-        setIsLoading(false);
-        return;
+        throw Error(response.statusText);
       }
 
       const json = await response.json();
-
-      setData(json.data);
-      setIsLoading(false);
-    })();
-  }, [page]);
+      return json.data as string[];
+    },
+  });
 
   if (isLoading) {
     return "Loading in progress...";
@@ -72,23 +70,25 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const { mutate: onSubmit } = useMutation({
+    mutationFn: async (event: FormEvent) => {
+      event.preventDefault();
 
-    const response = await fetch("http://localhost:3000/login2", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    });
+      const response = await fetch("http://localhost:3000/login2", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
 
-    console.log(response);
-    onLogin();
-  };
+      console.log(response);
+    },
+    onSuccess: onLogin,
+  });
 
   return (
     <form onSubmit={onSubmit}>
