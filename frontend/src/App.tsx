@@ -6,10 +6,21 @@ import {
   useMutation,
   useQuery,
 } from "@tanstack/react-query";
+import { createUseStyles } from "react-jss";
 
 const client = new QueryClient();
 
+const useStyles = createUseStyles({
+  button: {
+    color: "green",
+  },
+  year: {
+    fontStyle: "italic",
+  },
+});
+
 function App() {
+  const classes = useStyles();
   const [currentView, setCurrentView] = useState<"login" | "list">("login");
 
   return (
@@ -23,12 +34,14 @@ function App() {
       <br />
       <br />
       <button
+        className={classes.button}
         onClick={() =>
           setCurrentView(currentView === "list" ? "login" : "list")
         }
       >
         Toggle view
       </button>
+      <span className={classes.year}>This was built in year 2024</span>
     </QueryClientProvider>
   );
 }
