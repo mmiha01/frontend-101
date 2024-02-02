@@ -18,6 +18,20 @@ app.post("/login2", (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/list/:page", (req, res) => {
+  function startCase(input) {
+    return input[0].toUpperCase() + input.slice(1).toLowerCase();
+  }
+
+  const randomItems = new Array(20)
+    .fill(1)
+    .map((_, index) =>
+      startCase(`${Math.random().toString(32).split(".")[1]}${index}`),
+    );
+
+  res.json({ data: randomItems });
+});
+
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
