@@ -38,3 +38,24 @@ document.querySelector("form").addEventListener("submit", async (event) => {
 
   console.log("Got response:", json);
 });
+
+function printCurrentPath() {
+  document.getElementById("current-path").textContent =
+    `Current path is: ${window.location.pathname}`;
+}
+
+document
+  .getElementById("history-api-link")
+  .addEventListener("click", (event) => {
+    event.preventDefault();
+
+    window.history.pushState(null, undefined, event.target.href);
+
+    printCurrentPath();
+  });
+
+window.addEventListener("popstate", () => {
+  printCurrentPath();
+});
+
+printCurrentPath();
