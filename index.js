@@ -18,18 +18,43 @@ app.post("/login2", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/list/:page", (req, res) => {
-  function startCase(input) {
-    return input[0].toUpperCase() + input.slice(1).toLowerCase();
-  }
+app.get("/foo", (_req, _res, next) => {
+  console.log("Foo 1");
 
-  const randomItems = new Array(20)
-    .fill(1)
-    .map((_, index) =>
-      startCase(`${Math.random().toString(32).split(".")[1]}${index}`),
+  return next();
+});
+
+app.get("/foo", (_req, res) => {
+  console.log("Foo 2");
+
+  res.json({ ok: true });
+});
+
+const ERRORS = {
+  entityNotFound: {
+    code: 414,
+    httpCode: 400,
+  },
+};
+
+app.get("/test", () => {
+  throw Error(ERRORS.entityNotFound.code);
+});
+
+app.use((err, req, res, next) => {
+  if (err) {
+    const knownError = Object.values(ERRORS).find(
+      (item) => item.code === Number(err.message),
     );
 
-  res.json({ data: randomItems });
+    if (knownError) {
+      res.status(knownError.httpCode);
+      return res.json({ code: knownError.code });
+    }
+
+    res.status(400);
+    res.json({ ok: false });
+  }
 });
 
 app.listen(port, () => {
